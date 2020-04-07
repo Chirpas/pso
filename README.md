@@ -30,9 +30,16 @@ This library was developed due to a lack of flexibility in existing implementati
     
     `i.e. pso_init(&context, &settings, 2, MIN);`
     
-3. Set the default PSO parameters or set your own: (manual setting is the next implementation)
+3. Set the default PSO parameters or set your own.
 
     `void pso_settings_default(pso_settings_t* settings, int swarmSize, int maxIter);`
+    
+    Manually setting parameters can be done with the following functions. IF you do this without calling `pso_settings_default`, each  
+    of these functions must be called!
+    
+    `void pso_settings_set_coefficients(pso_settings_t* settings, double _c1, double _c2)`
+    `void pso_settings_set_inertia(pso_settings_t* settings, double _w_lo, double _w_up)`
+    `void pso_settings_set_swarm(pso_settings_t* settings, int agents)`
 
 4. Pass a reference to the goalfunction to be optimised
 
@@ -45,6 +52,8 @@ This library was developed due to a lack of flexibility in existing implementati
 6. Optimal result can be accessed through:
         
     `context->gBestCord`
+    
+7. Cleanup. Once finished, call `void pso_uninit(pso_context_t* context, pso_settings_t* settings)` to cleanup any memory allocated by    the algorithm.
 
 # Integration
 To integrate into your project, all thats needed is to copy pso.c and pso.h into your working directory. Alternatively, you can generate and link the static library.
