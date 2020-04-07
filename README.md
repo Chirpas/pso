@@ -19,5 +19,7 @@ This library was developed due to a lack of flexibility in existing implementati
 # Usage
 
 1. Create a goalfunction of the following form
-  double (*func_ptr)(double*, int)
+
+  double (\*func_ptr)(double\*, int)
+  
   The first parameter takes an array of co-ordinates in the desired search space and the second take the dimensionality of the search space. The returned result is the function value at the provided co-ordinates.
