@@ -6,7 +6,7 @@ This is a modular implementation of the PSO algorithm with no external dependanc
 This library was developed due to a lack of flexibility in existing implementations.
 
 # Features
-- Generalised for variables with varying seach spaces
+- Generalised for variables with varying search spaces
 
 # Future Plans
 - Other inertial weight schemes
