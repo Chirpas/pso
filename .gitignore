@@ -1,0 +1,9 @@
+#visual studio files
+*.sln
+.*vcxproj.*
+.*vcxproj
+.vs/
+
+#generated directories
+bin/
+bin-obj/
