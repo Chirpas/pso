@@ -26,22 +26,22 @@ This library was developed due to a lack of flexibility in existing implementati
     
 2. Initialise the PSO datastructures by passing a reference to pso_init along with the dimensionality of the search space and the optimisation mode:
 
-    void pso_init(pso_context_t\*\* context, pso_settings_t\*\* settings, int dimension, int mode);
+    `void pso_init(pso_context_t\*\* context, pso_settings_t\*\* settings, int dimension, int mode);`
     
-    i.e. pso_init(&context, &settings, 2, MIN);
+    `i.e. pso_init(&context, &settings, 2, MIN);`
     
 3. Set the default PSO parameters or set your own: (manual setting is the next implementation)
 
-    void pso_settings_default(pso_settings_t\* settings, int swarmSize, int maxIter);
+    `void pso_settings_default(pso_settings_t\* settings, int swarmSize, int maxIter);`
 
 4. Pass a reference to the goalfunction to be optimised
 
-    void pso_settings_goalFunc_set(pso_context_t\* context, pso_objective_func func);
+    `void pso_settings_goalFunc_set(pso_context_t\* context, pso_objective_func func);`
 
 5. Run the algorithm:
 
-    pso_run(context, settings);
+    `pso_run(context, settings);`
 
 6. Optimal result can be accessed through:
         
-    context->gBestCord
+    `context->gBestCord`
