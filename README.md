@@ -45,3 +45,14 @@ This library was developed due to a lack of flexibility in existing implementati
 6. Optimal result can be accessed through:
         
     `context->gBestCord`
+
+#Integration
+To integrate into your project, all thats needed is to copy pso.c and pso.h into your working directory. Alternatively, you can generate and link the static library.
+
+At present, premake is used to do this and can be called with `scripts\Win-GenProjects.bat`. This is windows specific and generates a project file for VS2019. I have no plans on modifying this however its easily adjusted to your system and can generate for cmake or a makefile. For further details see https://premake.github.io/
+
+#Example
+A simple demo file has been included and will be compiled along with the static library mentioned above.
+
+#Disclaimer
+This algorithm has been implemented in such a way to integrate into one of my current projects and at present has been tested only in a limited capacity. I accept no responsibility for any actions it or its implementation may cause... except feedback. I love feedback!
