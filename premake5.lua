@@ -37,11 +37,4 @@ workspace "PSO"
 		
 
 
-		
-	
-	
-	-- output filepath
---outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
---	targetdir ("bin/" ..outputdir.."/pso")
---	objdir ("bin-obj/" ..outputdir.."/pso")
---	debugdir "bin/%{outputdir}/pso"
+

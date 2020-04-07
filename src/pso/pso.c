@@ -5,8 +5,6 @@
 
 	returns a double* array containing the optimal values for each dimension of the specified
 	number of dimensions.
-	
-	double* solution - Best found solution in the search space. Returns as NULL if there was an error during function call.
 	*/
 void pso_run(pso_context_t* context, pso_settings_t* settings)
 {
@@ -36,7 +34,27 @@ void pso_run(pso_context_t* context, pso_settings_t* settings)
 			pso_swarm_evaluate(context, settings);
 			pso_debug_2d(context, settings);
 		} while (!pso_stop(context, settings));
+
+		//deref memory allocated during run
+		pso_swarm_destroy(context, settings);
 	}
+}
+
+/* void pso_swarm_destroy(pso_context_t* context, pso_settings_t* settings);
+	Dereferences all allocated memory for particles during the PSO runtime apart from gbest!. 
+*/
+void pso_swarm_destroy(pso_context_t* context, pso_settings_t* settings)
+{
+	for (int i = 0; i < settings->size; i++)
+	{
+		if (context->particle != NULL)
+		{
+			free(context->particle[i].cord.x);
+			free(context->particle[i].cord.v);
+			free(context->particle[i].pbestCord);
+		}
+	}
+	free(context->particle);
 }
 
 /* int pso_stop(pso_context_t* context, pso_settings_t* settings)
@@ -58,18 +76,13 @@ int pso_stop(pso_context_t* context, pso_settings_t* settings)
 
 /*void pso_init(pso_context_t context, pso_settings_t settings)
 	Initialise datastructures & runtime functions
-
-	int dimension - dimensionality of problem to be solved
 	int mode - optimisation mode -> minimization (MIN) or maximization (MAX)
 */
-void pso_init(pso_context_t** context, pso_settings_t** settings, int dimension, int mode)
+void pso_init(pso_context_t** context, pso_settings_t** settings, int mode)
 {
 	*settings = (pso_settings_t*)malloc(sizeof(pso_settings_t));;
 	*context = (pso_context_t*)malloc(sizeof(pso_context_t));
-	(*settings)->x_lo = (double*)malloc(dimension * sizeof(double));
-	(*settings)->x_up = (double*)malloc(dimension * sizeof(double));
 	(*context)->iter = 0;
-	(*settings)->dim = dimension;
 	(*settings)->opt_mode = mode;
 
 	//set initial g
@@ -81,15 +94,24 @@ void pso_init(pso_context_t** context, pso_settings_t** settings, int dimension,
 	srand((unsigned int)time(NULL));
 }
 
+/* void pso_uninit(pso_context_t* context, pso_settings_t* settings);
+	Free all memory allocated by the algorithm
+*/
+void pso_uninit(pso_context_t* context, pso_settings_t* settings)
+{
+	free(settings->x_lo);
+	free(settings->x_up);
+	free(context->gbestCord);
+	free(settings);
+	free(context);
+}
+
 /*void pso_settings_default(pso_settings_t* settings)
 	Sets the default settings for the pso algorithm
 
 	pso_settings_t* settings	- Holds all information the algorithm requires
-	int dimension				- dimensionality of the system being optimised
-	int swarmSize				- Number of agents in the swarm
-	int max Iter				- maximum number of generations before forced exit
 */
-void pso_settings_default(pso_settings_t* settings, int swarmSize, int maxIter)
+void pso_settings_default(pso_settings_t* settings)
 {
 	if (settings == NULL)
 	{
@@ -98,18 +120,34 @@ void pso_settings_default(pso_settings_t* settings, int swarmSize, int maxIter)
 	else
 	{
 		//set default values
-		settings->size = swarmSize;
-		settings->c1 = 1.496;
-		settings->c2 = 1.496;
-		settings->w_min = 0.3;
-		settings->w_max = 0.7298;
-		settings->iter_max = maxIter;
+		settings->c1 = DEFAULT_C1;
+		settings->c2 = DEFAULT_C2;
+		settings->w_min = DEFAULT_W_MIN;
+		settings->w_max = DEFAULT_W_MAX;
+		settings->iter_max = DEFAULT_MAX_ITER;
+		settings->size = DEFAULT_SWARM_SIZE;
+	}
+}
 
-		for (int i = 0; i < settings->dim; i++)
-		{
-			settings->x_lo[i] = -2.048;
-			settings->x_up[i] = 2.048;
-		}
+/* void pso_settings_solutionSpace_set(pso_settings_t* settings, double* range_lower, double* range_upper, int dimension)
+	Sets the search space that the swarm with move over evaluating the goal function. Also sets the dimensionality of the search space
+*/
+void pso_settings_set_solutionSpace(pso_settings_t** settings, double* range_lower, double* range_upper, int dimension)
+{
+	if (settings == NULL)
+	{
+		printf("pso data structures not initialised!\n");
+		return;
+	}
+
+	(*settings)->dim = dimension;
+	(*settings)->x_lo = (double*)malloc(dimension * sizeof(double));
+	(*settings)->x_up = (double*)malloc(dimension * sizeof(double));
+
+	for (int i = 0; i < (*settings)->dim; i++)
+	{
+		(*settings)->x_lo[i] = range_lower[i];
+		(*settings)->x_up[i] = range_upper[i];
 	}
 }
 
@@ -136,7 +174,7 @@ void pso_settings_weighting_adjust(pso_context_t* context, pso_settings_t* setti
 	Passes the address of the goalfunction to be evaluated. Assumes that the object function is of the form
 	typedef double (*pso_objective_func)(double*, int);
 */
-void pso_settings_goalFunc_set(pso_context_t* context, pso_objective_func func)
+void pso_settings_set_goalFunc(pso_context_t* context, pso_objective_func func)
 {
 	context->obj_func = func;
 }
@@ -171,9 +209,15 @@ void pso_swarm_generate(pso_context_t* context, pso_settings_t* settings)
 		deepCopy(&(context->particle[i].pbestCord), &(context->particle[i].cord.x), settings->dim);
 
 		if (settings->opt_mode == MIN)
+		{
 			context->particle[i].pbest = DBL_MAX;
+			context->gbest = DBL_MAX;
+		}
 		else
+		{
 			context->particle[i].pbest = 0;
+			context->gbest = 0;
+		}
 	}
 	//find gbest and pbest for initial particles
 	pso_swarm_evaluate(context, settings);
@@ -274,19 +318,50 @@ void pso_swarm_update(pso_context_t* context, pso_settings_t* settings)
 	}
 }
 
+/* void pso_settings_set_coefficients(pso_settings_t* settings, double _c1, double _c2);
+	Sets the exploratory coefficients
+	double _c1 - affinity to exploit global
+	double _c2 - affinity to exploit local
+*/
+void pso_settings_set_coefficients(pso_settings_t* settings, double _c1, double _c2)
+{
+	settings->c1 = _c1;
+	settings->c2 = _c2;
+}
+
+/*void pso_settings_set_inertia(pso_settings_t* settings, double _w_lo, double _w_up)
+	Sets the upper and lower inertial weight boundaries
+*/
+void pso_settings_set_inertia(pso_settings_t* settings, double _w_lo, double _w_up)
+{
+	settings->w_min = _w_lo;
+	settings->w_max = _w_up;
+}
+
+/*void pso_settings_set_swarm(pso_settings_t* settings, int agents)
+	Sets the number of agents in the swarm
+*/
+void pso_settings_set_swarm(pso_settings_t* settings, int agents)
+{
+	settings->size = agents;
+}
 
 /*void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 	debug function used to print the first two dimensions of each particle in the swarm
 */
+
 void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 {
-	printf("printing particles; iteration: %d\n", context->iter);
-	for (int i = 0; i < settings->size; i++)
+	if (DEBUG == 1)
 	{
-		printf("particle: %d\n", i);
-		printf("x : %.2f, %.2f \n", context->particle[i].cord.x[0], context->particle[i].cord.x[1]);
-		printf("v : %.2f, %.2f \n", context->particle[i].cord.v[0], context->particle[i].cord.v[1]);
-		printf("px: %.2f, %.2f, pVal: %.2f \n\n", context->particle[i].pbestCord[0], context->particle[i].pbestCord[1], context->particle[i].pbest);
+		printf("printing particles; iteration: %d\n", context->iter);
+		for (int i = 0; i < settings->size; i++)
+		{
+			printf("particle: %d\n", i);
+			printf("x : %.2f, %.2f \n", context->particle[i].cord.x[0], context->particle[i].cord.x[1]);
+			printf("v : %.2f, %.2f \n", context->particle[i].cord.v[0], context->particle[i].cord.v[1]);
+			printf("px: %.2f, %.2f, pVal: %.2f \n\n", context->particle[i].pbestCord[0], context->particle[i].pbestCord[1], context->particle[i].pbest);
+		}
 	}
 }
 
