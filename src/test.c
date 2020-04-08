@@ -41,7 +41,7 @@ void main(void)
 	double range_upper[2] = { 5.12, 5.12 };
 	
 	//init
-	pso_init(&context, &settings, MIN);
+	pso_init(&context, &settings, PSO_MIN);
 
 	//set pso parameters
 	pso_settings_default(settings);

@@ -1,13 +1,15 @@
 #ifndef _PSO_H_
 #define _PSO_H_
 
+#ifndef TRUE
 #define TRUE 1
 #define FALSE !TRUE
+#endif
 
-#define MIN 0
-#define MAX !MIN
+#define PSO_MIN 0
+#define PSO_MAX !PSO_MIN
 
-#define DEBUG 0
+#define PSO_DEBUG 0
 #define RETURN_ERROR -99999999
 
 //default pso parameters

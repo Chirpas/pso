@@ -86,7 +86,7 @@ void pso_init(pso_context_t** context, pso_settings_t** settings, int mode)
 	(*settings)->opt_mode = mode;
 
 	//set initial g
-	if(mode == MIN)
+	if(mode == PSO_MIN)
 		(*context)->gbest = DBL_MAX;
 	else
 		(*context)->gbest = 0;
@@ -208,7 +208,7 @@ void pso_swarm_generate(pso_context_t* context, pso_settings_t* settings)
 		}
 		deepCopy(&(context->particle[i].pbestCord), &(context->particle[i].cord.x), settings->dim);
 
-		if (settings->opt_mode == MIN)
+		if (settings->opt_mode == PSO_MIN)
 		{
 			context->particle[i].pbest = DBL_MAX;
 			context->gbest = DBL_MAX;
@@ -277,9 +277,9 @@ void pso_swarm_evaluate(pso_context_t* context, pso_settings_t* settings)
 */
 int pso_particle_compare(pso_settings_t* settings, double result, double cBest)
 {
-	if (settings->opt_mode == MIN && result < cBest)
+	if (settings->opt_mode == PSO_MIN && result < cBest)
 		return TRUE;
-	else if (settings->opt_mode == MAX && result > cBest)
+	else if (settings->opt_mode == PSO_MAX && result > cBest)
 		return TRUE;
 	else
 		return FALSE;
@@ -352,7 +352,7 @@ void pso_settings_set_swarm(pso_settings_t* settings, int agents)
 
 void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 {
-	if (DEBUG == 1)
+	if (PSO_DEBUG == 1)
 	{
 		printf("printing particles; iteration: %d\n", context->iter);
 		for (int i = 0; i < settings->size; i++)
