@@ -27,7 +27,7 @@ This library was developed due to a lack of flexibility in existing implementati
 
     `void pso_init(pso_context_t** context, pso_settings_t** settings, int dimension, int mode);`
     
-    `i.e. pso_init(&context, &settings, 2, MIN);`
+    `i.e. pso_init(&context, &settings, 2, PSO_MIN);`
     
 3. Set the default PSO parameters or set your own.
 
