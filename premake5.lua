@@ -19,11 +19,12 @@ workspace "PSO"
 	--static pso library
 	project "PSOlib"
 		kind "StaticLib"
-	
+		targetdir ("lib/")
 		files {
 			"src/pso/pso.c",
 			"src/pso/pso.h"
 		}
+		
 		
 	project "test"
 		kind "ConsoleApp"
