@@ -5,9 +5,13 @@
 
 	returns a double* array containing the optimal values for each dimension of the specified
 	number of dimensions.
+
+	double ** tmp - used to reallocate a smaller array for the final output for gBestHistory
 	*/
 void pso_run(pso_context_t* context, pso_settings_t* settings)
 {
+	double** tmp;
+
 	if (context == NULL)
 	{
 		printf("Error: 'context' not initialized. Have you called pso_init?\n");
@@ -25,15 +29,59 @@ void pso_run(pso_context_t* context, pso_settings_t* settings)
 		pso_swarm_generate(context, settings);
 		pso_debug_2d(context, settings);
 
+		//if user wants gBestHistory, allocate memory
+		if (settings->gexport)
+		{
+			//allocate memory the size of the max number of iterations. +1 to include the initial generation
+			context->gBestHistory = (double**)malloc((settings->iter_max+1) * sizeof(double*));
+			for (int i = 0; i <= settings->iter_max; i++)
+				(context->gBestHistory)[i] = (double*)calloc((settings->dim + 1),sizeof(double)); //extra position to store gBestValue
+		}
+
 		//main pso loop
 		do
 		{
+			if (settings->gexport)
+			{
+				//format of gBestHistory [gBestCoord:gBestVal]
+				deepCopy(&(context->gBestHistory[context->iter]), &(context->gbestCord), settings->dim);
+				context->gBestHistory[context->iter][settings->dim] = context->gbest;
+			}
+
 			//iterate to next generation
 			context->iter++;
+			context->gbestPrev = context->gbest;
 			pso_swarm_update(context, settings);
 			pso_swarm_evaluate(context, settings);
+
+			//update gBest history
 			pso_debug_2d(context, settings);
 		} while (!pso_stop(context, settings));
+
+		//final copy to grab the last set of co-ordinates
+		if (settings->gexport)
+		{
+			//format of gBestHistory [gBestCoord:gBestVal]
+			deepCopy(&(context->gBestHistory[context->iter]), &(context->gbestCord), settings->dim);
+			context->gBestHistory[context->iter][settings->dim] = context->gbest;
+		}
+
+		//trim the size of allocated memory for gBestHistory to the size of the array
+		if (settings->gexport)
+		{
+			tmp = (double**)malloc((context->iter + 1) * sizeof(double*));
+			for (int i = 0; i <= context->iter; i++)
+			{
+				(tmp)[i] = (double*)calloc((settings->dim + 1), sizeof(double));
+				deepCopy(&(tmp[i]), &(context->gBestHistory[i]), settings->dim+1);
+			}
+			//free oversized array
+			for (int i = 0; i <= settings->iter_max; i++)
+				free(context->gBestHistory[i]);
+			free(context->gBestHistory);
+			//copy address of tmp to gBestHistory
+			context->gBestHistory = tmp;
+		}
 
 		//deref memory allocated during run
 		pso_swarm_destroy(context, settings);
@@ -64,7 +112,14 @@ void pso_swarm_destroy(pso_context_t* context, pso_settings_t* settings)
 */
 int pso_stop(pso_context_t* context, pso_settings_t* settings)
 {
-	if (context->iter >= settings->iter_max)
+	int tmp = ((settings->dGBest > 0) ? (fabs(context->gbest - context->gbestPrev) < settings->dGBest) : FALSE);
+	pso_debug_coord(context, settings, context->iter-1);
+	if (tmp == TRUE)
+		context->gNoChange++;
+	else
+		context->gNoChange = 0;
+	printf("Change: %i/%i\n", context->gNoChange, settings->nGBest);
+	if (context->iter >= settings->iter_max || context->gNoChange >= settings->nGBest)
 	{
 		return TRUE;
 	}
@@ -83,14 +138,21 @@ void pso_init(pso_context_t** context, pso_settings_t** settings, int mode)
 	*settings = (pso_settings_t*)malloc(sizeof(pso_settings_t));;
 	*context = (pso_context_t*)malloc(sizeof(pso_context_t));
 	(*context)->iter = 0;
+	(*context)->gNoChange = 0;
 	(*settings)->opt_mode = mode;
+	(*settings)->dGBest = -1;
 
 	//set initial g
-	if(mode == PSO_MIN)
+	if (mode == PSO_MIN)
+	{
 		(*context)->gbest = DBL_MAX;
+		(*context)->gbestPrev = DBL_MAX;
+	}
 	else
+	{
 		(*context)->gbest = 0;
-
+		(*context)->gbestPrev = 0;
+	}
 	srand((unsigned int)time(NULL));
 }
 
@@ -115,10 +177,13 @@ void pso_settings_default(pso_settings_t* settings)
 {
 	if (settings == NULL)
 	{
-		printf("Settings = NULL\n");
+		printf("Settings datastructure not allocatred!\n");
 	}
 	else
 	{
+		//dont export gbest of each generation
+		settings->gexport = FALSE;
+
 		//set default values
 		settings->c1 = DEFAULT_C1;
 		settings->c2 = DEFAULT_C2;
@@ -346,10 +411,59 @@ void pso_settings_set_swarm(pso_settings_t* settings, int agents)
 	settings->size = agents;
 }
 
+/*void pso_settings_set_maxIterations(pso_settings_t* settings, int maxIter)
+	Sets the maximum number of generations before the optimisaiton algorithm will stop.
+*/
+void pso_settings_set_maxIterations(pso_settings_t* settings, int maxIter)
+{
+	if (settings == NULL)
+	{
+		printf("Settings datastructure not allocatred!\n");
+	}
+	else
+	{
+		if (maxIter > 0)
+			settings->iter_max = maxIter;
+		else
+			printf("maxIter must be > 0\n");
+	}
+}
+
+/*void pso_settings_set_minDeltaGBest(pso_settings_t* settings, double dGbest, int n)
+	Sets if the algorithm should end if the gbest value doesnt improve by dGbest within n iterations.
+*/
+void pso_settings_set_minDeltaGBest(pso_settings_t* settings, double dGbest, int nGbest)
+{
+	if (settings == NULL)
+	{
+		printf("Settings datastructure not allocatred!\n");
+	}
+	else
+	{
+		settings->dGBest = dGbest;
+		settings->nGBest = nGbest;
+	}
+}
+
+/* void pso_settings_set_exportGenerations(pso_settings_t* settings, int export)
+	Sets if the routine should save the current gBest coordinates and values after each generation
+*/
+void pso_settings_set_exportGenerations(pso_settings_t* settings, int export)
+{
+	if (settings == NULL)
+	{
+		printf("Settings datastructure not allocatred!\n");
+	}
+	else
+	{
+		//export gbest of each generation
+		settings->gexport = TRUE;
+	}
+}
+
 /*void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 	debug function used to print the first two dimensions of each particle in the swarm
 */
-
 void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 {
 	if (PSO_DEBUG == 1)
@@ -365,6 +479,18 @@ void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 	}
 }
 
+/*void pso_debug_coord(pso_context_t* context, pso_settings_t* settings, int i)
+	prints co-ords and gval of the ith generation
+*/
+void pso_debug_coord(pso_context_t* context, pso_settings_t* settings, int i)
+{
+	printf("gen %i: ", i);
+	for (int j = 0; j < settings->dim; j++)
+	{
+		printf("x%i: %3.2f, ", j, context->gBestHistory[i][j]);
+	}
+	printf("gBest: %3.5f \n", context->gBestHistory[i][settings->dim]);
+}
 
 	/*void deepCopy(double** dst, double** src, int size_t)
 	Takes the address of a source and destination double* and performs a deep copy on the source information
@@ -376,3 +502,4 @@ void deepCopy(double** dst, double** src, int size_t)
 		(*dst)[i] = (*src)[i];
 	}
 }
+

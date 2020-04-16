@@ -34,9 +34,15 @@ typedef double (*pso_objective_func)(double*, int);
 */
 typedef struct pso_settings_t
 {
-	int opt_mode;
-	int iter_max;
+	int opt_mode; //min/max
+	int gexport;
 
+	//stop criteria
+	int iter_max;
+	double dGBest;
+	int nGBest;
+
+	//optimisation settings
 	int dim;
 	int size;
 	double* x_lo, * x_up;
@@ -67,8 +73,11 @@ typedef struct pso_particle_t
 typedef struct pso_context_t
 {
 	int iter;
+	int gNoChange;
 	double* gbestCord;
+	double** gBestHistory;
 	double gbest;
+	double gbestPrev;
 	double weight;
 	pso_particle_t* particle;
 	pso_objective_func obj_func;
@@ -83,6 +92,7 @@ void pso_swarm_update(pso_context_t* context, pso_settings_t* settings);
 int pso_particle_compare(pso_settings_t* settings, double result, double cBest);
 int pso_stop(pso_context_t* context, pso_settings_t* settings);
 void pso_debug_2d(pso_context_t* context, pso_settings_t* settings);
+void pso_debug_coord(pso_context_t* context, pso_settings_t* settings, int i);
 
 void deepCopy(double** dst, double** src, int size_t);
 
@@ -102,8 +112,8 @@ void pso_settings_default(pso_settings_t* settings);
 void pso_settings_set_coefficients(pso_settings_t* settings, double _c1, double _c2);
 void pso_settings_set_inertia(pso_settings_t* settings, double _w_lo, double _w_up);
 void pso_settings_set_swarm(pso_settings_t* settings, int agents);
-
-
-
+void pso_settings_set_maxIterations(pso_settings_t* settings, int maxIter);
+void pso_settings_set_minDeltaGBest(pso_settings_t* settings, double dGbest, int n);
+void pso_settings_set_exportGenerations(pso_settings_t* settings, int export);
 
 #endif // PSO_H_
