@@ -37,11 +37,17 @@ This library was developed due to a lack of flexibility in existing implementati
     of these functions must be called! A safe way to go is to set default parameters, then modify.
     
     `void pso_settings_set_coefficients(pso_settings_t* settings, double _c1, double _c2);`
+    
     `void pso_settings_set_inertia(pso_settings_t* settings, double _w_lo, double _w_up);`
+    
     `void pso_settings_set_swarm(pso_settings_t* settings, int agents);`
+    
     `void pso_settings_set_maxIterations(pso_settings_t* settings, int maxIter);`
+    
     `void pso_settings_set_minDeltaGBest(pso_settings_t* settings, double dGbest, int n);`
+    
     `void pso_settings_set_exportGenerations(pso_settings_t* settings, int export);`
+    
 
 4. Pass a reference to the goalfunction to be optimised
 
