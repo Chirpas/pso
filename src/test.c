@@ -37,19 +37,19 @@ void main(void)
 	pso_settings_t* settings = NULL;
 
 	int dimensions = 2;
-	double range_lower[2] = { -5.12, -5.12 };
-	double range_upper[2] = { 5.12, 5.12 };
+	double range_lower[5] = { -5, -5};
+	double range_upper[5] = { 10, 10};
 	
 	//init
 	pso_init(&context, &settings, PSO_MIN);
 
 	//set pso parameters
 	pso_settings_default(settings);
-	pso_settings_set_solutionSpace(&settings, range_lower, range_upper, 2);
-	pso_settings_set_goalFunc(context, dropWave);
+	pso_settings_set_solutionSpace(&settings, range_lower, range_upper, dimensions);
+	pso_settings_set_goalFunc(context, rosenbrock);
 	pso_settings_set_swarm(settings, 30);
 	pso_settings_set_maxIterations(settings, 200);
-	pso_settings_set_minDeltaGBest(settings, 0.0001, 10);
+	//pso_settings_set_minDeltaGBest(settings, 0.000001, 5);
 	pso_settings_set_exportGenerations(settings, TRUE);
 	pso_run(context, settings);
 
@@ -57,8 +57,6 @@ void main(void)
 	{
 		pso_debug_coord(context, settings, i);
 	}
-
-	//printf("\ngBest : %.2f, %.2f, gVal: %f \n", context->gbestCord[0], context->gbestCord[1], context->gbest);
 
 	pso_uninit(context, settings);
 }

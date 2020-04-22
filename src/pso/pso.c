@@ -118,7 +118,7 @@ int pso_stop(pso_context_t* context, pso_settings_t* settings)
 		context->gNoChange++;
 	else
 		context->gNoChange = 0;
-	printf("Change: %i/%i\n", context->gNoChange, settings->nGBest);
+	//printf("Change: %i/%i\n", context->gNoChange, settings->nGBest);
 	if (context->iter >= settings->iter_max || context->gNoChange >= settings->nGBest)
 	{
 		return TRUE;
@@ -141,6 +141,7 @@ void pso_init(pso_context_t** context, pso_settings_t** settings, int mode)
 	(*context)->gNoChange = 0;
 	(*settings)->opt_mode = mode;
 	(*settings)->dGBest = -1;
+	(*settings)->nGBest = 1000;
 
 	//set initial g
 	if (mode == PSO_MIN)
@@ -484,10 +485,10 @@ void pso_debug_2d(pso_context_t* context, pso_settings_t* settings)
 */
 void pso_debug_coord(pso_context_t* context, pso_settings_t* settings, int i)
 {
-	printf("gen %i: ", i);
+	printf(" gen %.3i: ", i);
 	for (int j = 0; j < settings->dim; j++)
 	{
-		printf("x%i: %3.2f, ", j, context->gBestHistory[i][j]);
+		printf("x%i: %.3f, ", j, context->gBestHistory[i][j]);
 	}
 	printf("gBest: %3.5f \n", context->gBestHistory[i][settings->dim]);
 }
