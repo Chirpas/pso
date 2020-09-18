@@ -28,7 +28,7 @@
 #include <string.h> //memcpy
 
 /*function pointer to objective function. cordinates and dimension size*/
-typedef double (*pso_objective_func)(double*, int);
+typedef double (*pso_objective_func)(double*, int, void*);
 
 /* Holds global information for algorithm
 */
@@ -81,6 +81,7 @@ typedef struct pso_context_t
 	double weight;
 	pso_particle_t* particle;
 	pso_objective_func obj_func;
+	void* obj_func_data;
 }pso_context_t;
 
 void pso_settings_weighting_adjust(pso_context_t* context, pso_settings_t* settings);
@@ -103,7 +104,7 @@ void pso_init(pso_context_t** context, pso_settings_t** settings, int mode);
 void pso_uninit(pso_context_t* context, pso_settings_t* settings);
 
 /*setup funcs*/
-void pso_settings_set_goalFunc(pso_context_t* context, pso_objective_func func);
+void pso_settings_set_goalFunc(pso_context_t* context, pso_objective_func func, void* u_data);
 void pso_settings_set_solutionSpace(pso_settings_t** settings, double* range_lower, double* range_upper, int dimension);
 
 /*alter default settings*/

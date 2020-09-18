@@ -1,6 +1,6 @@
 #include "pso.h"
 
-double rosenbrock(double* x, int dim) {
+double rosenbrock(double* x, int dim, void* u_data) {
 
 	double sum = 0;
 	int i;
@@ -11,7 +11,7 @@ double rosenbrock(double* x, int dim) {
 
 }
 
-double dropWave(double* x, int dim)
+double dropWave(double* x, int dim, void* u_data)
 {
 	const int dimMax = 2;
 	double returnVal, nume, deno;
@@ -46,7 +46,7 @@ void main(void)
 	//set pso parameters
 	pso_settings_default(settings);
 	pso_settings_set_solutionSpace(&settings, range_lower, range_upper, dimensions);
-	pso_settings_set_goalFunc(context, rosenbrock);
+	pso_settings_set_goalFunc(context, rosenbrock, NULL);
 	pso_settings_set_swarm(settings, 30);
 	pso_settings_set_maxIterations(settings, 200);
 	//pso_settings_set_minDeltaGBest(settings, 0.000001, 5);

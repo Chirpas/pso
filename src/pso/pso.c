@@ -54,7 +54,6 @@ void pso_run(pso_context_t* context, pso_settings_t* settings)
 			pso_swarm_update(context, settings);
 			pso_swarm_evaluate(context, settings);
 
-			//update gBest history
 			pso_debug_2d(context, settings);
 		} while (!pso_stop(context, settings));
 
@@ -238,11 +237,14 @@ void pso_settings_weighting_adjust(pso_context_t* context, pso_settings_t* setti
 
 /*void pso_settings_goalFunc_set(pso_context_t* context, pso_objective_func func)
 	Passes the address of the goalfunction to be evaluated. Assumes that the object function is of the form
-	typedef double (*pso_objective_func)(double*, int);
+	typedef double (*pso_objective_func)(double*, int, void*);
+
+	void* u_data is custom user data that can be passed to an external goalfunction.
 */
-void pso_settings_set_goalFunc(pso_context_t* context, pso_objective_func func)
+void pso_settings_set_goalFunc(pso_context_t* context, pso_objective_func func, void* u_data)
 {
 	context->obj_func = func;
+	context->obj_func_data = u_data;
 }
 
 
@@ -319,7 +321,7 @@ void pso_swarm_evaluate(pso_context_t* context, pso_settings_t* settings)
 		if (inside == TRUE)
 		{
 			//evaluate fitness function
-			result = context->obj_func(context->particle[i].cord.x, settings->dim);
+			result = context->obj_func(context->particle[i].cord.x, settings->dim, context->obj_func_data);
 			//if better than current personal best, update
 			if (pso_particle_compare(settings, result, context->particle[i].pbest))
 			{
@@ -458,7 +460,7 @@ void pso_settings_set_exportGenerations(pso_settings_t* settings, int export)
 	else
 	{
 		//export gbest of each generation
-		settings->gexport = TRUE;
+		settings->gexport = export;
 	}
 }
 
