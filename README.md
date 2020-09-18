@@ -31,7 +31,7 @@ This library was developed due to a lack of flexibility in existing implementati
     
 3. Set the default PSO parameters or set your own.
 
-    `void pso_settings_default(pso_settings_t* settings, int swarmSize, int maxIter);`
+    `void pso_settings_default(pso_settings_t* settings);`
     
     Manually setting parameters can be done with the following functions. IF you do this without calling `pso_settings_default`, each  
     of these functions must be called! A safe way to go is to set default parameters, then modify.
