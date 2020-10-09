@@ -163,6 +163,7 @@ void pso_uninit(pso_context_t* context, pso_settings_t* settings)
 {
 	free(settings->x_lo);
 	free(settings->x_up);
+	free(settings->vmod);
 	free(context->gbestCord);
 	free(settings);
 	free(context);
@@ -208,11 +209,13 @@ void pso_settings_set_solutionSpace(pso_settings_t** settings, double* range_low
 	(*settings)->dim = dimension;
 	(*settings)->x_lo = (double*)malloc(dimension * sizeof(double));
 	(*settings)->x_up = (double*)malloc(dimension * sizeof(double));
+	(*settings)->vmod = (double*)malloc(dimension * sizeof(double));
 
 	for (int i = 0; i < (*settings)->dim; i++)
 	{
 		(*settings)->x_lo[i] = range_lower[i];
 		(*settings)->x_up[i] = range_upper[i];
+		(*settings)->vmod[i] = range_lower[i] == range_upper[i] ?  0.0f : 1.0f;
 	}
 }
 
@@ -375,9 +378,9 @@ void pso_swarm_update(pso_context_t* context, pso_settings_t* settings)
 			c2_r = settings->c2*(rand() / (double)RAND_MAX);
 
 			//update individual dimension velocity, then position
-			context->particle[i].cord.v[j] = context->weight * context->particle[i].cord.v[j]
+			context->particle[i].cord.v[j] = settings->vmod[j] * (context->weight * context->particle[i].cord.v[j]
 				+ c1_r * (context->particle[i].pbestCord[j] - context->particle[i].cord.x[j])
-				+ c2_r * (context->gbestCord[j] - context->particle[i].cord.x[j]);
+				+ c2_r * (context->gbestCord[j] - context->particle[i].cord.x[j]));
 			context->particle[i].cord.x[j] += context->particle[i].cord.v[j];
 
 			//can implement other boundary conditions here. For now, going to take the approach of ignorinf the particle

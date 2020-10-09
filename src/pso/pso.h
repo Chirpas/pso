@@ -50,6 +50,7 @@ typedef struct pso_settings_t
 	double c2;
 	double w_min;
 	double w_max;
+	double* vmod; //modifer for velocity. If the ranges are equal, set to 0 so velocity for co-ordinate isnt updated.
 }pso_settings_t;
 
 
